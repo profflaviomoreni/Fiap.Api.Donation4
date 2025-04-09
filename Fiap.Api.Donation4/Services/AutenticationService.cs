@@ -24,7 +24,7 @@ namespace Fiap.Api.Donation4.Services
                     new Claim( ClaimTypes.Role , usuarioModel.Regra),
                     new Claim( "UsuarioId" , usuarioModel.UsuarioId.ToString()),
                 }),
-                Expires = DateTime.UtcNow.AddMinutes(5),
+                Expires = DateTime.UtcNow.AddMinutes(1),
                 Issuer = "fiap",
                 SigningCredentials = new SigningCredentials( 
                     new SymmetricSecurityKey(secret), 
