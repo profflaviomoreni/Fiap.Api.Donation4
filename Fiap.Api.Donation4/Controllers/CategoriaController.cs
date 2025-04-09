@@ -1,5 +1,5 @@
 ﻿using Fiap.Api.Donation4.Models;
-using Microsoft.AspNetCore.Http;
+using Fiap.Api.Donation4.Repository.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fiap.Api.Donation4.Controllers
@@ -9,50 +9,107 @@ namespace Fiap.Api.Donation4.Controllers
     public class CategoriaController : ControllerBase
     {
 
+        private readonly ICategoriaRepository _categoriaRepository;
+
+        public CategoriaController(ICategoriaRepository categoriaRepository)
+        {
+            _categoriaRepository = categoriaRepository;            
+        }
+
+
         [HttpGet]
-        public IList<CategoriaModel> Get() {
-            return new List<CategoriaModel>()
+        public ActionResult<IList<CategoriaModel>> Get() {
+
+            var lista = _categoriaRepository.FindAll();
+
+            if (lista == null || lista.Count == 0) {
+                return NoContent();
+            } else
             {
-                new CategoriaModel()
-                {
-                    CategoriaId = 1,
-                    NomeCategoria = "Celular"
-                },
-                new CategoriaModel() {
-                    CategoriaId = 2,
-                    NomeCategoria = "Televisor"
-                }
-            };
+                return Ok(lista);
+            }
+                
         }
 
         [HttpGet("{id:int}")]
-        public CategoriaModel Get([FromRoute] int id)
+        public ActionResult<CategoriaModel> Get([FromRoute] int id)
         {
-            return 
-                new CategoriaModel()
-                {
-                    CategoriaId = 1,
-                    NomeCategoria = "Celular"
-                };
+            var categoriaModel = _categoriaRepository.FindById(id);
+
+            if (categoriaModel != null)
+            {
+                return Ok(categoriaModel);
+            } else
+            {
+                return NotFound();
+            }
         }
 
         [HttpPost]
-        public int Post([FromBody] CategoriaModel categoriaModel)
+        public ActionResult<CategoriaModel> Post([FromBody] CategoriaModel categoriaModel)
         {
-            return 2113;
+            if (ModelState.IsValid == false)
+            {
+                var errors = ModelState.Values
+                                    .SelectMany(x => x.Errors)
+                                    .Select(m => m.ErrorMessage);
+
+                return BadRequest(errors);
+            } else {
+
+                categoriaModel.CategoriaId = _categoriaRepository.Insert(categoriaModel);
+
+                return CreatedAtAction( nameof(Get) , new { id = categoriaModel.CategoriaId } , categoriaModel );
+                
+            }
+
         }
 
         [HttpPut("{id:int}")]
-        public int Put([FromRoute] int id, [FromBody] CategoriaModel categoriaModel)
+        public ActionResult Put([FromRoute] int id, [FromBody] CategoriaModel categoriaModel)
         {
-            return 2113;
+
+            if (ModelState.IsValid == false)
+            {
+                var errors = ModelState.Values
+                                    .SelectMany(x => x.Errors)
+                                    .Select( m=> m.ErrorMessage);
+
+                return BadRequest(errors);
+            }
+
+            if (id != categoriaModel.CategoriaId) { 
+                return BadRequest( new { erro = "IDs divergentes" });
+            }
+
+
+            var categoria = _categoriaRepository.FindById(id);
+            if (categoria == null)
+            {
+                return NotFound();
+            }
+
+            _categoriaRepository.Update(categoriaModel);
+            return NoContent();
         }
 
 
         [HttpDelete("{id:int}")]
-        public int Delete([FromRoute] int id)
+        public ActionResult Delete([FromRoute] int id)
         {
-            return 1001;
+            if ( id == 0)
+            {
+                return BadRequest();
+            }
+
+            var categoria = _categoriaRepository.FindById(id);
+            if (categoria == null)
+            {
+                return NotFound();
+            }
+
+            _categoriaRepository.Delete(id);
+            return NoContent();
         }
 
     }
