@@ -1,12 +1,15 @@
 ﻿using Fiap.Api.Donation4.Models;
 using Fiap.Api.Donation4.Repository.Interfaces;
 using Fiap.Api.Donation4.Services;
+using Fiap.Api.Donation4.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fiap.Api.Donation4.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsuarioController : ControllerBase
     {
         private readonly IUsuarioRepository _usuarioRepository;
@@ -73,29 +76,41 @@ namespace Fiap.Api.Donation4.Controllers
 
         [HttpPost]
         [Route("Login")]
-        public ActionResult<dynamic> Login([FromBody] UsuarioModel usuarioModel )
+        [AllowAnonymous]
+        public ActionResult<LoginResponseVM> Login([FromBody] LoginRequestVM loginRequest )
         {
-            var usuario = _usuarioRepository.FindByEmailAndSenha(usuarioModel.EmailUsuario, usuarioModel.Senha);
-
-            if (usuario != null) {
-
-                usuario.Senha = string.Empty;
-
-                var tokenJTW = AutenticationService.GetToken(usuario);
-
-                var retorno = new
-                {
-                    tokenJTW = tokenJTW,
-                    usuarioId = usuario.UsuarioId,
-                    usuarioEmail = usuario.EmailUsuario,
-                    regra = usuario.Regra
-                };
-
-                return Ok(retorno);
-
-            } else
+            if (ModelState.IsValid)
             {
-                return Unauthorized();
+
+                var usuario = _usuarioRepository.FindByEmailAndSenha(loginRequest.EmailUsuario, loginRequest.Senha);
+
+                if (usuario != null)
+                {
+                    var tokenJTW = AutenticationService.GetToken(usuario);
+
+                    var loginResponse = new LoginResponseVM();
+                    loginResponse.Token = tokenJTW;
+                    loginResponse.NomeUsuario = usuario.NomeUsuario;
+                    loginResponse.Regra = usuario.Regra;
+                    loginResponse.EmailUsuario = usuario.EmailUsuario;
+                    loginResponse.UsuarioId = usuario.UsuarioId;
+
+                    return Ok(loginResponse);
+
+                }
+                else
+                {
+                    return Unauthorized();
+                }
+
+            } else {
+
+                var errors = ModelState.Values
+                                    .SelectMany(x => x.Errors)
+                                    .Select(m => m.ErrorMessage);
+
+                return BadRequest(errors);
+
             }
 
         }

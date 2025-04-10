@@ -58,8 +58,8 @@ builder.Services
             ValidateIssuer = true,
             ValidIssuer = "fiap",
             IssuerSigningKey = new SymmetricSecurityKey(secretToken),
-            RequireExpirationTime = true,
-            LifetimeValidator = CustomLifetimeValidator
+            //RequireExpirationTime = true,
+            //LifetimeValidator = CustomLifetimeValidator
         };
 
     });

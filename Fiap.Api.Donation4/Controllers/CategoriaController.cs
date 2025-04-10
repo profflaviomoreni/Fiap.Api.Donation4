@@ -18,9 +18,9 @@ namespace Fiap.Api.Donation4.Controllers
 
 
         [HttpGet]
-        public ActionResult<IList<CategoriaModel>> Get() {
+        public async Task<ActionResult<IList<CategoriaModel>>> Get() {
 
-            var lista = _categoriaRepository.FindAll();
+            var lista = await _categoriaRepository.FindAllAsync();
 
             if (lista == null || lista.Count == 0) {
                 return NoContent();
@@ -32,9 +32,9 @@ namespace Fiap.Api.Donation4.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public ActionResult<CategoriaModel> Get([FromRoute] int id)
+        public async Task<ActionResult<CategoriaModel>> Get([FromRoute] int id)
         {
-            var categoriaModel = _categoriaRepository.FindById(id);
+            var categoriaModel = await _categoriaRepository.FindByIdAsync(id);
 
             if (categoriaModel != null)
             {
@@ -46,7 +46,7 @@ namespace Fiap.Api.Donation4.Controllers
         }
 
         [HttpPost]
-        public ActionResult<CategoriaModel> Post([FromBody] CategoriaModel categoriaModel)
+        public async Task<ActionResult<CategoriaModel>> Post([FromBody] CategoriaModel categoriaModel)
         {
             if (ModelState.IsValid == false)
             {
@@ -55,9 +55,10 @@ namespace Fiap.Api.Donation4.Controllers
                                     .Select(m => m.ErrorMessage);
 
                 return BadRequest(errors);
+
             } else {
 
-                categoriaModel.CategoriaId = _categoriaRepository.Insert(categoriaModel);
+                categoriaModel.CategoriaId = await _categoriaRepository.InsertAsync(categoriaModel);
 
                 return CreatedAtAction( nameof(Get) , new { id = categoriaModel.CategoriaId } , categoriaModel );
                 
@@ -66,7 +67,7 @@ namespace Fiap.Api.Donation4.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public ActionResult Put([FromRoute] int id, [FromBody] CategoriaModel categoriaModel)
+        public async Task<ActionResult> Put([FromRoute] int id, [FromBody] CategoriaModel categoriaModel)
         {
 
             if (ModelState.IsValid == false)
@@ -83,32 +84,32 @@ namespace Fiap.Api.Donation4.Controllers
             }
 
 
-            var categoria = _categoriaRepository.FindById(id);
+            var categoria = await _categoriaRepository.FindByIdAsync(id);
             if (categoria == null)
             {
                 return NotFound();
             }
 
-            _categoriaRepository.Update(categoriaModel);
+            _categoriaRepository.UpdateAsync(categoriaModel);
             return NoContent();
         }
 
 
         [HttpDelete("{id:int}")]
-        public ActionResult Delete([FromRoute] int id)
+        public async Task<ActionResult> Delete([FromRoute] int id)
         {
             if ( id == 0)
             {
                 return BadRequest();
             }
 
-            var categoria = _categoriaRepository.FindById(id);
+            var categoria = await _categoriaRepository.FindByIdAsync(id);
             if (categoria == null)
             {
                 return NotFound();
             }
 
-            _categoriaRepository.Delete(id);
+            _categoriaRepository.DeleteAsync(id);
             return NoContent();
         }
 

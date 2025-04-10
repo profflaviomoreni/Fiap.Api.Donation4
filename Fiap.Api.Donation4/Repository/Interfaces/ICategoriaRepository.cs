@@ -4,14 +4,14 @@ namespace Fiap.Api.Donation4.Repository.Interfaces
 {
     public interface ICategoriaRepository
     {
-        public IList<CategoriaModel> FindAll();
+        public Task<IList<CategoriaModel>> FindAllAsync();
 
-        public CategoriaModel FindById(int id);
+        public Task<CategoriaModel> FindByIdAsync(int id);
 
-        public int Insert(CategoriaModel categoriaModel);
+        public Task<int> InsertAsync(CategoriaModel categoriaModel);
 
-        public void Update(CategoriaModel categoriaModel);
+        public Task UpdateAsync(CategoriaModel categoriaModel);
 
-        public void Delete(int id);
+        public Task DeleteAsync(int id);
     }
 }
