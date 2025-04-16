@@ -1,4 +1,5 @@
-﻿using Fiap.Api.Donation4.Models;
+﻿using AutoMapper;
+using Fiap.Api.Donation4.Models;
 using Fiap.Api.Donation4.Repository.Interfaces;
 using Fiap.Api.Donation4.Services;
 using Fiap.Api.Donation4.ViewModel;
@@ -14,9 +15,12 @@ namespace Fiap.Api.Donation4.Controllers
     {
         private readonly IUsuarioRepository _usuarioRepository;
 
-        public UsuarioController(IUsuarioRepository usuarioRepository)
+        private readonly IMapper _mapper;
+
+        public UsuarioController(IUsuarioRepository usuarioRepository, IMapper mapper)
         {
             _usuarioRepository = usuarioRepository;
+            _mapper = mapper;
         }
 
 
@@ -82,18 +86,13 @@ namespace Fiap.Api.Donation4.Controllers
             if (ModelState.IsValid)
             {
 
-                var usuario = _usuarioRepository.FindByEmailAndSenha(loginRequest.EmailUsuario, loginRequest.Senha);
+                var usuarioModel = _usuarioRepository.FindByEmailAndSenha(loginRequest.EmailUsuario, loginRequest.Senha);
 
-                if (usuario != null)
+                if (usuarioModel != null)
                 {
-                    var tokenJTW = AutenticationService.GetToken(usuario);
 
-                    var loginResponse = new LoginResponseVM();
-                    loginResponse.Token = tokenJTW;
-                    loginResponse.NomeUsuario = usuario.NomeUsuario;
-                    loginResponse.Regra = usuario.Regra;
-                    loginResponse.EmailUsuario = usuario.EmailUsuario;
-                    loginResponse.UsuarioId = usuario.UsuarioId;
+                    var loginResponse = _mapper.Map<LoginResponseVM>(usuarioModel);
+                    loginResponse.Token = AutenticationService.GetToken(usuarioModel);
 
                     return Ok(loginResponse);
 

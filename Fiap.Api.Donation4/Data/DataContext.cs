@@ -10,6 +10,8 @@ namespace Fiap.Api.Donation4.Data
 
         public DbSet<UsuarioModel> Usuarios { get; set; }
 
+        public DbSet<ProdutoModel> Produtos { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -75,6 +77,49 @@ namespace Fiap.Api.Donation4.Data
             );
             #endregion
 
+
+            #region Produto
+            modelBuilder.Entity<ProdutoModel>(entity =>
+            {
+
+                entity.ToTable("Produto");
+
+                entity.HasKey(e => e.ProdutoId);
+                entity.Property(e => e.ProdutoId)
+                        .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Nome)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.Property(e => e.SugestaoTroca)
+                      .IsRequired()
+                      .HasMaxLength(200);
+
+                entity.Property(e => e.Valor)
+                      .IsRequired()
+                      .HasPrecision(18, 2);
+
+                entity.Property(e => e.DataCadastro)
+                      .IsRequired();
+
+                entity.Property(e => e.DataExpiracao)
+                      .IsRequired();
+
+                // relacionamento categoria
+                entity.HasOne(e => e.Categoria)
+                        .WithMany()
+                        .HasForeignKey(e => e.CategoriaId)
+                        .IsRequired();
+
+                // relacionamento usuario
+                entity.HasOne(e => e.Usuario)
+                        .WithMany()
+                        .HasForeignKey(e => e.UsuarioId)
+                        .IsRequired();
+
+             });
+             #endregion
 
         }
 
