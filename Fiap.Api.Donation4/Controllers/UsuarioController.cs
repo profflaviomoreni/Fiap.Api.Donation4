@@ -2,13 +2,10 @@
 using Fiap.Api.Donation4.Models;
 using Fiap.Api.Donation4.Repository.Interfaces;
 using Fiap.Api.Donation4.ViewModel;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Fiap.Api.Donation4.Services;
-using Azure;
 using Microsoft.AspNetCore.JsonPatch;
-using Fiap.Api.Donation3.ViewModel;
 
 namespace Fiap.Api.Donation4.Controllers
 {

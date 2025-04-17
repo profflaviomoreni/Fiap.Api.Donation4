@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Fiap.Api.Donation3.ViewModel
+namespace Fiap.Api.Donation4.ViewModel
 {
     public class LoginRequestViewModel
     {
