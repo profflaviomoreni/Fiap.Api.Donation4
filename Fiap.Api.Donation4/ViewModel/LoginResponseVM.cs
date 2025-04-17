@@ -2,7 +2,6 @@
 {
     public class LoginResponseVM
     {
-
         public string EmailUsuario { get; set; }
 
         public string NomeUsuario { get; set; }
@@ -26,6 +25,5 @@
             Regra = regra;
             Token = token;
         }
-
     }
 }
