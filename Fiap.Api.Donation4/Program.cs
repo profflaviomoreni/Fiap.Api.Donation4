@@ -12,6 +12,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Fiap.Api.Donation3.ViewModel;
+using Fiap.Api.Donation3;
+using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -152,6 +157,8 @@ builder.Services.AddVersionedApiExplorer(setup => {
     setup.SubstituteApiVersionInUrl = true;
 });
 
+builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -160,12 +167,25 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.UseApiVersioning();
+// Ajustando versionamento no Swagger
+var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    // Ajustando versionamento no Swagger
+    app.UseSwaggerUI(c =>
+    {
+        foreach (var d in provider.ApiVersionDescriptions)
+        {
+            c.SwaggerEndpoint(
+                $"/swagger/{d.GroupName}/swagger.json",
+                d.GroupName.ToUpperInvariant());
+        }
+
+        c.DocExpansion(DocExpansion.List);
+    });
 }
 
 app.UseCors("AllAccess");
