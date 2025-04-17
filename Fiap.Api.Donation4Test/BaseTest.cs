@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Fiap.Api.Donation3.ViewModel;
 using Fiap.Api.Donation4.Models;
 using Fiap.Api.Donation4.ViewModel;
 
@@ -16,12 +17,12 @@ namespace Fiap.Api.Donation4Test
                 m.AllowNullCollections = true;
                 m.AllowNullDestinationValues = true;
 
-                m.CreateMap<UsuarioModel, LoginResponseVM>();
-                m.CreateMap<LoginRequestVM, UsuarioModel>();
+                m.CreateMap<UsuarioModel, LoginResponseViewModel>();
+                m.CreateMap<LoginRequestViewModel, UsuarioModel>();
 
-                m.CreateMap<UsuarioModel, UsuarioResponseVM>();
+                m.CreateMap<UsuarioModel, UsuarioResponseViewModel>();
 
-                m.CreateMap<ProdutoModel, ProdutoResponseVM>()
+                m.CreateMap<ProdutoModel, ProdutoResponseViewModel>()
                     .ForMember(dest => dest.NomeCategoria, opt => opt.MapFrom(src => src.Categoria.NomeCategoria))
                     .ForMember(dest => dest.NomeUsuario, opt => opt.MapFrom(src => src.Usuario.EmailUsuario));
 

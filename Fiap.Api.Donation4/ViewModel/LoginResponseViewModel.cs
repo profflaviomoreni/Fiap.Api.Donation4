@@ -1,6 +1,6 @@
 ﻿namespace Fiap.Api.Donation4.ViewModel
 {
-    public class LoginResponseVM
+    public class LoginResponseViewModel
     {
         public string EmailUsuario { get; set; }
 
@@ -12,12 +12,12 @@
 
         public string Token { get; set; }
 
-        public LoginResponseVM()
+        public LoginResponseViewModel()
         {
 
         }
 
-        public LoginResponseVM(string emailUsuario, string nomeUsuario, int usuarioId, string? regra, string token)
+        public LoginResponseViewModel(string emailUsuario, string nomeUsuario, int usuarioId, string? regra, string token)
         {
             EmailUsuario = emailUsuario;
             NomeUsuario = nomeUsuario;

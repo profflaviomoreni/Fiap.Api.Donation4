@@ -2,7 +2,7 @@
 
 namespace Fiap.Api.Donation4.ViewModel
 {
-    public class ProdutoPaginacaoResponseVM
+    public class ProdutoPaginacaoResponseViewModel
     {
 
         public int TotalGeral { get; set; }
@@ -13,7 +13,7 @@ namespace Fiap.Api.Donation4.ViewModel
 
         public string LinkAnterior { get; set; }
 
-        public IList<ProdutoResponseVM> Produtos { get; set; }
+        public IList<ProdutoResponseViewModel> Produtos { get; set; }
 
     }
 }

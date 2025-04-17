@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Fiap.Api.Donation4.ViewModel
+namespace Fiap.Api.Donation3.ViewModel
 {
-    public class LoginRequestVM
+    public class LoginRequestViewModel
     {
 
         [Required(ErrorMessage = "Email é requerido para o login")]
@@ -12,12 +12,12 @@ namespace Fiap.Api.Donation4.ViewModel
         public string Senha { get; set; }
 
 
-        public LoginRequestVM()
+        public LoginRequestViewModel()
         {
 
         }
 
-        public LoginRequestVM(string emailUsuario, string senha)
+        public LoginRequestViewModel(string emailUsuario, string senha)
         {
             EmailUsuario = emailUsuario;
             Senha = senha;

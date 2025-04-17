@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
 using Fiap.Api.Donation4.Models;
 using Fiap.Api.Donation4.Repository.Interfaces;
-using Fiap.Api.Donation4.Services;
 using Fiap.Api.Donation4.ViewModel;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Fiap.Api.Donation4.Services;
+using Azure;
+using Microsoft.AspNetCore.JsonPatch;
+using Fiap.Api.Donation3.ViewModel;
 
 namespace Fiap.Api.Donation4.Controllers
 {
@@ -14,7 +18,6 @@ namespace Fiap.Api.Donation4.Controllers
     public class UsuarioController : ControllerBase
     {
         private readonly IUsuarioRepository _usuarioRepository;
-
         private readonly IMapper _mapper;
 
         public UsuarioController(IUsuarioRepository usuarioRepository, IMapper mapper)
@@ -23,105 +26,134 @@ namespace Fiap.Api.Donation4.Controllers
             _mapper = mapper;
         }
 
-
-        [HttpGet]
-        public async Task<ActionResult<IList<UsuarioResponseVM>>> GetAll()
-        {
-            var usuarios = _usuarioRepository.FindAll();
-
-            if ( usuarios != null && usuarios.Count > 0 )
-            {
-                var retorno = _mapper.Map<IList<UsuarioResponseVM>>(usuarios);
-                return Ok(retorno);
-            } else {
-                return NoContent();
-            }
-                
-        }
-
-
-        [HttpGet("{id}")]
-        public ActionResult<UsuarioModel> GetById(int id)
-        {
-            var usuario = _usuarioRepository.FindById(id);
-            if (usuario == null)
-                return NotFound();
-
-            return Ok(usuario);
-        }
-
-
-        [HttpPost]
-        public ActionResult<UsuarioModel> Post([FromBody] UsuarioModel usuarioModel)
+        // Método para validação do ModelState
+        private ActionResult ValidateModelState()
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                var errorMessages = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
 
-            var usuarioId = _usuarioRepository.Insert(usuarioModel);
+                return BadRequest(new { Errors = errorMessages });
+            }
+            return null;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IList<UsuarioResponseViewModel>>> Get()
+        {
+            var usuarios = await _usuarioRepository.FindAllAsync();
+
+            if (usuarios != null && usuarios.Count > 0)
+            {
+                var usuariosResponse = _mapper.Map<IList<UsuarioResponseViewModel>>(usuarios);
+                return Ok(usuariosResponse);
+            }
+            else
+            {
+                return NoContent();
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<UsuarioResponseViewModel>> Post([FromBody] UsuarioRequestViewModel usuarioRequest)
+        {
+            var validationError = ValidateModelState();
+            if (validationError != null)
+                return validationError;
+
+            var usuarioModel = _mapper.Map<UsuarioModel>(usuarioRequest);
+            var usuarioId = await _usuarioRepository.InsertAsync(usuarioModel);
             usuarioModel.UsuarioId = usuarioId;
 
-            return CreatedAtAction(nameof(GetById), new { id = usuarioId }, usuarioModel);
+            var usuarioResponse = _mapper.Map<UsuarioResponseViewModel>(usuarioModel);
+            return CreatedAtAction(nameof(Get), new { id = usuarioId }, usuarioResponse);
         }
 
 
-        [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] UsuarioModel usuarioModel)
+        [HttpPatch("{id:int}")]
+        public async Task<ActionResult<UsuarioResponseViewModel>> Patch([FromRoute] int id, [FromBody] JsonPatchDocument<UsuarioPatchViewModel> patchDoc)
         {
-            if (id != usuarioModel.UsuarioId)
-                return BadRequest("ID da URL diferente do corpo da requisição.");
+            if (patchDoc == null)
+            {
+                return BadRequest("Invalid patch document.");
+            }
 
-            _usuarioRepository.Update(usuarioModel);
-            return NoContent();
-        }
-
-
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var usuario = _usuarioRepository.FindById(id);
-            if (usuario == null)
+            var usuarioExistente = await _usuarioRepository.FindByIdAsync(id);
+            if (usuarioExistente == null)
+            {
                 return NotFound();
+            }
 
-            _usuarioRepository.Delete(id);
-            return NoContent();
+            // Mapeia o modelo atual para o ViewModel de patch
+            var usuarioPatchVM = _mapper.Map<UsuarioPatchViewModel>(usuarioExistente);
+
+            // Aplica o patch
+            patchDoc.ApplyTo(usuarioPatchVM);
+
+            // Valida o ModelState após a aplicação do patch
+            var validationError = ValidateModelState();
+            if (validationError != null)
+                return validationError;
+
+            // Atualiza o modelo original com os dados do patch
+            _mapper.Map(usuarioPatchVM, usuarioExistente);
+
+            // Salva as alterações
+            await _usuarioRepository.UpdateAsync(usuarioExistente);
+
+            var usuarioResponse = _mapper.Map<UsuarioResponseViewModel>(usuarioExistente);
+            return Ok(usuarioResponse);
+        }
+
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<UsuarioResponseViewModel>> Put([FromRoute] int id, [FromBody] UsuarioRequestViewModel usuarioRequest)
+        {
+            var validationError = ValidateModelState();
+            if (validationError != null)
+                return validationError;
+
+            var usuarioExistente = await _usuarioRepository.FindByIdAsync(id);
+            if (usuarioExistente == null)
+            {
+                return NotFound();
+            }
+
+            var usuarioModel = _mapper.Map(usuarioRequest, usuarioExistente);
+            usuarioModel.UsuarioId = id; // Assegura que o ID não seja alterado
+
+            await _usuarioRepository.UpdateAsync(usuarioModel);
+
+            var usuarioResponse = _mapper.Map<UsuarioResponseViewModel>(usuarioModel);
+            return Ok(usuarioResponse);
         }
 
         [HttpPost]
         [Route("Login")]
-        [AllowAnonymous]
-        public ActionResult<LoginResponseVM> Login([FromBody] LoginRequestVM loginRequest )
+        public async Task<ActionResult<LoginResponseViewModel>> Login([FromBody] LoginRequestViewModel loginRequestVM)
         {
-            if (ModelState.IsValid)
+            var validationError = ValidateModelState();
+            if (validationError != null)
+                return validationError;
+
+            var usuarioModel = await _usuarioRepository.FindByEmailAndSenhaAsync(loginRequestVM.EmailUsuario, loginRequestVM.Senha);
+
+            if (usuarioModel != null)
             {
+                var tokenJWT = AutenticationService.GetToken(usuarioModel);
 
-                var usuarioModel = _usuarioRepository.FindByEmailAndSenha(loginRequest.EmailUsuario, loginRequest.Senha);
+                var loginResponseVM = _mapper.Map<LoginResponseViewModel>(usuarioModel);
+                loginResponseVM.Token = tokenJWT;
 
-                if (usuarioModel != null)
-                {
-
-                    var loginResponse = _mapper.Map<LoginResponseVM>(usuarioModel);
-                    loginResponse.Token = AutenticationService.GetToken(usuarioModel);
-
-                    return Ok(loginResponse);
-
-                }
-                else
-                {
-                    return Unauthorized();
-                }
-
-            } else {
-
-                var errors = ModelState.Values
-                                    .SelectMany(x => x.Errors)
-                                    .Select(m => m.ErrorMessage);
-
-                return BadRequest(errors);
-
+                return Ok(loginResponseVM);
             }
-
+            else
+            {
+                return NotFound();
+            }
         }
-
-        
     }
 }

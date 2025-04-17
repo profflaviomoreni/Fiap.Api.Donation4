@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Fiap.Api.Donation3.ViewModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,14 +92,40 @@ var mapperConfig = new AutoMapper.MapperConfiguration(m =>
     m.AllowNullCollections = true;
     m.AllowNullDestinationValues = true;
 
-    m.CreateMap<UsuarioModel, LoginResponseVM>();
-    m.CreateMap<LoginRequestVM, UsuarioModel>();
+    m.CreateMap<UsuarioModel, LoginRequestViewModel>();
+    m.CreateMap<LoginRequestViewModel, UsuarioModel>();
 
-    m.CreateMap<UsuarioModel, UsuarioResponseVM>();
+    m.CreateMap<UsuarioModel, LoginResponseViewModel>();
+    m.CreateMap<LoginResponseViewModel, UsuarioModel>();
 
-    m.CreateMap<ProdutoModel, ProdutoResponseVM>()
-        .ForMember(dest => dest.NomeCategoria, opt => opt.MapFrom(src => src.Categoria.NomeCategoria))
-        .ForMember(dest => dest.NomeUsuario, opt => opt.MapFrom(src => src.Usuario.EmailUsuario));
+    m.CreateMap<CategoriaModel, CategoriaResponseViewModel>();
+    m.CreateMap<CategoriaRequestViewModel, CategoriaModel>();
+
+    m.CreateMap<UsuarioModel, UsuarioResponseViewModel>();
+    m.CreateMap<UsuarioRequestViewModel, UsuarioModel>();
+
+    m.CreateMap<UsuarioModel, UsuarioPatchViewModel>();
+    m.CreateMap<UsuarioPatchViewModel, UsuarioModel>();
+
+
+    m.CreateMap<ProdutoRequestViewModel, ProdutoModel>();
+
+    m.CreateMap<ProdutoPatchViewModel, ProdutoModel>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+    m.CreateMap<ProdutoModel, ProdutoPatchViewModel>();
+
+
+    m.CreateMap<ProdutoModel, ProdutoResponseViewModel>()
+            .ForMember(dest => dest.NomeCategoria, opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.NomeCategoria : string.Empty))
+            .ForMember(dest => dest.NomeUsuario, opt => opt.MapFrom(src => src.Usuario != null ? src.Usuario.NomeUsuario : string.Empty));
+
+
+    m.CreateMap<TrocaRequestViewModel, TrocaModel>();
+
+    m.CreateMap<TrocaModel, TrocaResponseViewModel>()
+        .ForMember(dest => dest.NomeProdutoMeu, opt => opt.MapFrom(src => src.ProdutoMeu.Nome))
+        .ForMember(dest => dest.NomeProdutoEscolhido, opt => opt.MapFrom(src => src.ProdutoEscolhido.Nome));
 
 });
 IMapper mapper = mapperConfig.CreateMapper();

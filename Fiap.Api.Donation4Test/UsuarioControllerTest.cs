@@ -27,16 +27,16 @@ namespace Fiap.Api.Donation4Test
                 new UsuarioModel { UsuarioId = 2, NomeUsuario = "Usuario 2" }
             };
 
-            _mockUsuarioRepository.Setup( r => r.FindAll() ).Returns( usuarios );
+            _mockUsuarioRepository.Setup( r => r.FindAllAsync() ).ReturnsAsync( usuarios );
 
             // Act
             var controller = new UsuarioController(_mockUsuarioRepository.Object, _mapper);
-            var getResult = await controller.GetAll();
+            var getResult = await controller.Get();
 
 
             // Assert
             var resultType = Assert.IsType<OkObjectResult>(getResult.Result);
-            var resultValue = Assert.IsType<List<UsuarioResponseVM>>(resultType.Value);
+            var resultValue = Assert.IsType<List<UsuarioResponseViewModel>>(resultType.Value);
 
             Assert.Equal(2, resultValue.Count());
             Assert.Equal("Usuario 1", resultValue[0].NomeUsuario);
@@ -53,16 +53,16 @@ namespace Fiap.Api.Donation4Test
                 new UsuarioModel { UsuarioId = 3, NomeUsuario = "Usuario 3" }
             };
 
-            _mockUsuarioRepository.Setup(r => r.FindAll()).Returns(usuarios);
+            _mockUsuarioRepository.Setup(r => r.FindAllAsync()).ReturnsAsync(usuarios);
 
             // Act
             var controller = new UsuarioController(_mockUsuarioRepository.Object, _mapper);
-            var getResult = await controller.GetAll();
+            var getResult = await controller.Get();
 
 
             // Assert
             var resultType = Assert.IsType<OkObjectResult>(getResult.Result);
-            var resultValue = Assert.IsType<List<UsuarioResponseVM>>(resultType.Value);
+            var resultValue = Assert.IsType<List<UsuarioResponseViewModel>>(resultType.Value);
 
             Assert.Equal(3, resultValue.Count());
             Assert.NotEqual(2, resultValue.Count());
@@ -78,12 +78,11 @@ namespace Fiap.Api.Donation4Test
             var usuarios = new List<UsuarioModel>();
 
 
-            // Act
-            _mockUsuarioRepository.Setup(r => r.FindAll()).Returns(usuarios);
+            _mockUsuarioRepository.Setup(r => r.FindAllAsync()).ReturnsAsync(usuarios);
 
             // Act
             var controller = new UsuarioController(_mockUsuarioRepository.Object, _mapper);
-            var getResult = await controller.GetAll();
+            var getResult = await controller.Get();
 
 
             // Assert
