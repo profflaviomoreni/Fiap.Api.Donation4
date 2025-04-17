@@ -25,10 +25,18 @@ namespace Fiap.Api.Donation4.Controllers
 
 
         [HttpGet]
-        public ActionResult<IList<UsuarioModel>> GetAll()
+        public async Task<ActionResult<IList<UsuarioResponseVM>>> GetAll()
         {
             var usuarios = _usuarioRepository.FindAll();
-            return Ok(usuarios);
+
+            if ( usuarios != null && usuarios.Count > 0 )
+            {
+                var retorno = _mapper.Map<IList<UsuarioResponseVM>>(usuarios);
+                return Ok(retorno);
+            } else {
+                return NoContent();
+            }
+                
         }
 
 

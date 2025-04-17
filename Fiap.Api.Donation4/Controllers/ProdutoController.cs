@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Fiap.Api.Donation4.Models;
+using Fiap.Api.Donation4.Repository;
 using Fiap.Api.Donation4.Repository.Interfaces;
 using Fiap.Api.Donation4.ViewModel;
 using Microsoft.AspNetCore.Mvc;

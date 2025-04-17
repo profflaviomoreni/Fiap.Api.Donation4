@@ -14,6 +14,19 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+#region CORS
+builder.Services.AddCors( options =>
+{
+    options.AddPolicy("AllAccess", policy => {
+        //policy.WithOrigins(new[] { "fiap.com.br" , "flavio.com.br" });
+        policy.AllowAnyOrigin();
+        policy.AllowAnyMethod();
+        policy.AllowAnyHeader();
+    });
+});
+#endregion
+
+
 // Add services to the container.
 
 builder.Services.AddControllers()
@@ -81,6 +94,8 @@ var mapperConfig = new AutoMapper.MapperConfiguration(m =>
     m.CreateMap<UsuarioModel, LoginResponseVM>();
     m.CreateMap<LoginRequestVM, UsuarioModel>();
 
+    m.CreateMap<UsuarioModel, UsuarioResponseVM>();
+
     m.CreateMap<ProdutoModel, ProdutoResponseVM>()
         .ForMember(dest => dest.NomeCategoria, opt => opt.MapFrom(src => src.Categoria.NomeCategoria))
         .ForMember(dest => dest.NomeUsuario, opt => opt.MapFrom(src => src.Usuario.EmailUsuario));
@@ -125,6 +140,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllAccess");
 
 app.UseHttpsRedirection();
 
